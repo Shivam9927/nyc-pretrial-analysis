@@ -1,0 +1,14 @@
+# Raw data is ~800 MB; download it (see data/README.md)
+data/raw/
+# Rebuilt by the pipeline
+data/processed/*.rds
+data/processed/*.csv
+outputs/*_files/
+.Rproj.user/
+.Rhistory
+.RData
+*.log
+*.tex
+analysis/*.html
+analysis/*.pdf
+analysis/*_files/
