@@ -1,0 +1,593 @@
+column,value,n
+arr_sex,Male,1082153
+arr_sex,Female,287885
+arr_sex,Unknown,9181
+arr_re_combi,Black,575871
+arr_re_combi,Hispanic,367143
+arr_re_combi,White,354002
+arr_re_combi,Asian,54378
+arr_re_combi,Unknown,14151
+arr_re_combi,Other,8024
+arr_re_combi,Native American,5650
+arr_yr,2024,307173
+arr_yr,2023,273962
+arr_yr,2019,230611
+arr_yr,2022,208686
+arr_yr,2021,182066
+arr_yr,2020,162877
+arr_yr,2018,9034
+arr_yr,2017,1221
+arr_yr,NA,955
+arr_yr,2016,707
+arr_yr,2015,408
+arr_yr,2014,324
+arr_yr,2013,243
+arr_yr,2012,190
+arr_yr,2011,128
+arr_yr,2025,118
+arr_yr,2010,76
+arr_yr,2009,58
+arr_yr,1994,39
+arr_yr,2008,31
+arr_yr,1995,29
+arr_yr,2006,25
+arr_yr,1996,23
+arr_yr,1997,23
+arr_yr,1993,22
+arr_yr,2007,21
+arr_yr,2004,17
+arr_yr,1991,15
+arr_yr,1992,14
+arr_yr,2003,14
+arr_yr,2005,13
+arr_yr,1990,9
+arr_yr,1999,9
+arr_yr,2000,9
+arr_yr,1987,8
+arr_yr,1989,8
+arr_yr,2001,7
+arr_yr,1988,6
+arr_yr,1998,6
+arr_yr,2002,6
+arr_yr,1982,5
+arr_yr,1981,4
+arr_yr,1985,4
+arr_yr,1984,3
+arr_yr,1986,3
+arr_yr,1980,2
+arr_yr,1969,1
+arr_yr,1970,1
+arr_yr,1974,1
+arr_yr,1975,1
+arr_yr,1976,1
+arr_yr,1977,1
+arr_yr,1983,1
+arr_mo,8,122861
+arr_mo,10,122162
+arr_mo,7,120880
+arr_mo,9,117916
+arr_mo,5,117418
+arr_mo,3,115770
+arr_mo,6,114287
+arr_mo,1,114119
+arr_mo,11,113902
+arr_mo,2,107285
+arr_mo,12,105897
+arr_mo,4,105767
+arr_mo,NA,955
+arr_region,NYC,772062
+arr_region,Non-NYC,600328
+arr_region,NA,6583
+arr_region,NYS unknown county or Out of NYS,246
+arr_class,A Misdemeanor,660445
+arr_class,D Felony,219115
+arr_class,E Felony,197222
+arr_class,C Felony,84375
+arr_class,B Felony,73928
+arr_class,Unclassified Misdemeanor,70867
+arr_class,B Misdemeanor,55329
+arr_class,NA,6583
+arr_class,A-II Felony,4589
+arr_class,A-I Felony Non Reducible,3768
+arr_class,A-I Felony Reducible,2991
+arr_class,Local Law Felony,7
+arr_attempt,Completed,1326181
+arr_attempt,Attempted,46455
+arr_attempt,NA,6583
+arr_vfo,Not VFO,1171311
+arr_vfo,VFO,193317
+arr_vfo,NA,6583
+arr_vfo,Underlying VFO Charge,4472
+arr_vfo,VFO-like class A-1 offenses,3536
+arr_firearm,Not Firearm Charge,1322293
+arr_firearm,Top Charge is Firearm,39404
+arr_firearm,Underlying Charge is Firearm,10939
+arr_firearm,NA,6583
+arr_hate,Not Hate Crime Charge,1371187
+arr_hate,NA,6583
+arr_hate,Hate Crime PL 485.05,890
+arr_hate,Like Hate Crime-Not PL 485.05,378
+arr_hate,Underlying Hate Crime Charge,181
+arrest_type,Custody,861021
+arrest_type,NA,271914
+arrest_type,DAT,246284
+crime_yr,2024,285958
+crime_yr,2023,272516
+crime_yr,2019,229330
+crime_yr,2022,208585
+crime_yr,2021,181623
+crime_yr,2020,165473
+crime_yr,2018,20394
+crime_yr,NA,6591
+crime_yr,2017,3271
+crime_yr,2016,1626
+crime_yr,2015,973
+crime_yr,2014,688
+crime_yr,2013,495
+crime_yr,2012,367
+crime_yr,2011,255
+crime_yr,2010,201
+crime_yr,2009,121
+crime_yr,2008,93
+crime_yr,2007,70
+crime_yr,2006,59
+crime_yr,2005,47
+crime_yr,2004,44
+crime_yr,1994,40
+crime_yr,2002,36
+crime_yr,1995,35
+crime_yr,2001,32
+crime_yr,1996,30
+crime_yr,1997,30
+crime_yr,2003,29
+crime_yr,2000,28
+crime_yr,2025,28
+crime_yr,1993,24
+crime_yr,1999,21
+crime_yr,1992,16
+crime_yr,1991,14
+crime_yr,1998,12
+crime_yr,1990,10
+crime_yr,1987,9
+crime_yr,1989,8
+crime_yr,1988,6
+crime_yr,1982,5
+crime_yr,1984,5
+crime_yr,1981,4
+crime_yr,1985,4
+crime_yr,1980,3
+crime_yr,1976,2
+crime_yr,1986,2
+crime_yr,1968,1
+crime_yr,1974,1
+crime_yr,1975,1
+crime_yr,1977,1
+crime_yr,1978,1
+crime_yr,1983,1
+crime_mo,7,122739
+crime_mo,8,122633
+crime_mo,10,119963
+crime_mo,5,118094
+crime_mo,9,117465
+crime_mo,6,117164
+crime_mo,3,113248
+crime_mo,1,112124
+crime_mo,11,111859
+crime_mo,4,106443
+crime_mo,12,106179
+crime_mo,2,104717
+crime_mo,NA,6591
+larg_yr,2024,318999
+larg_yr,2023,266867
+larg_yr,2019,234201
+larg_yr,2022,208062
+larg_yr,2021,183028
+larg_yr,2020,151146
+larg_yr,NA,16526
+larg_yr,2018,173
+larg_yr,2017,51
+larg_yr,2016,30
+larg_yr,2015,18
+larg_yr,2025,15
+larg_yr,2006,11
+larg_yr,2014,10
+larg_yr,2011,8
+larg_yr,2012,8
+larg_yr,1994,7
+larg_yr,2009,7
+larg_yr,1993,5
+larg_yr,1999,5
+larg_yr,1996,4
+larg_yr,2003,4
+larg_yr,2008,4
+larg_yr,1988,3
+larg_yr,1995,3
+larg_yr,2007,3
+larg_yr,2013,3
+larg_yr,1997,2
+larg_yr,1998,2
+larg_yr,2000,2
+larg_yr,2002,2
+larg_yr,2004,2
+larg_yr,2005,2
+larg_yr,1984,1
+larg_yr,1989,1
+larg_yr,1990,1
+larg_yr,1991,1
+larg_yr,2001,1
+larg_yr,2010,1
+larg_mo,8,124107
+larg_mo,10,123162
+larg_mo,7,121763
+larg_mo,9,118846
+larg_mo,3,113699
+larg_mo,5,113311
+larg_mo,11,111876
+larg_mo,1,111174
+larg_mo,6,109600
+larg_mo,2,105853
+larg_mo,12,105800
+larg_mo,4,103502
+larg_mo,NA,16526
+larg_class,A Misdemeanor,824749
+larg_class,D Felony,145444
+larg_class,E Felony,120880
+larg_class,Unclassified Misdemeanor,82138
+larg_class,C Felony,71602
+larg_class,B Felony,66864
+larg_class,B Misdemeanor,40204
+larg_class,NA,18636
+larg_class,A-II Felony,3133
+larg_class,A-I Felony Non Reducible,2923
+larg_class,A-I Felony Reducible,2275
+larg_class,Violation,241
+larg_class,Infraction,123
+larg_class,Unspecified,7
+larg_attempt,Completed,1337925
+larg_attempt,Attempted,22658
+larg_attempt,NA,18636
+larg_vfo,Not VFO,1199554
+larg_vfo,VFO,154107
+larg_vfo,NA,18636
+larg_vfo,Underlying VFO Charge,4204
+larg_vfo,VFO-like class A-1 offenses,2718
+larg_firearm,Not Firearm Charge,1312517
+larg_firearm,Top Charge is Firearm,37525
+larg_firearm,NA,18636
+larg_firearm,Underlying Charge is Firearm,10541
+larg_hate,Not Hate Crime Charge,1358241
+larg_hate,NA,19050
+larg_hate,Hate Crime PL 485.05,1062
+larg_hate,Like Hate Crime-Not PL 485.05,515
+larg_hate,Underlying Hate Crime Charge,351
+uarg_yr,NA,1174659
+uarg_yr,2024,42462
+uarg_yr,2023,41599
+uarg_yr,2022,38106
+uarg_yr,2021,32624
+uarg_yr,2019,21746
+uarg_yr,2020,18784
+uarg_yr,2025,9215
+uarg_yr,2018,10
+uarg_yr,2013,3
+uarg_yr,2016,3
+uarg_yr,1993,1
+uarg_yr,1997,1
+uarg_yr,2001,1
+uarg_yr,2007,1
+uarg_yr,2011,1
+uarg_yr,2012,1
+uarg_yr,2014,1
+uarg_yr,2017,1
+uarg_mo,NA,1174659
+uarg_mo,10,19167
+uarg_mo,3,18421
+uarg_mo,9,17898
+uarg_mo,8,17353
+uarg_mo,11,17222
+uarg_mo,1,16755
+uarg_mo,7,16612
+uarg_mo,5,16492
+uarg_mo,6,16466
+uarg_mo,12,16319
+uarg_mo,4,16294
+uarg_mo,2,15561
+uarg_class,NA,1192141
+uarg_class,D Felony,45316
+uarg_class,E Felony,39823
+uarg_class,C Felony,37450
+uarg_class,B Felony,34937
+uarg_class,A Misdemeanor,18940
+uarg_class,A-I Felony Reducible,2942
+uarg_class,A-II Felony,2515
+uarg_class,A-I Felony Non Reducible,2363
+uarg_class,Unclassified Misdemeanor,1528
+uarg_class,B Misdemeanor,471
+uarg_class,Violation,368
+uarg_class,Infraction,327
+uarg_class,Unspecified,98
+uarg_attempt,NA,1192141
+uarg_attempt,Completed,174749
+uarg_attempt,Attempted,12329
+uarg_vfo,NA,1192141
+uarg_vfo,Not VFO,112509
+uarg_vfo,VFO,67654
+uarg_vfo,VFO-like class A-1 offenses,3805
+uarg_vfo,Underlying VFO Charge,3110
+uarg_firearm,NA,1192141
+uarg_firearm,Not Firearm Charge,150771
+uarg_firearm,Top Charge is Firearm,27836
+uarg_firearm,Underlying Charge is Firearm,8471
+uarg_hate,NA,1192141
+uarg_hate,Not Hate Crime Charge,186379
+uarg_hate,Hate Crime PL 485.05,497
+uarg_hate,Underlying Hate Crime Charge,145
+uarg_hate,Like Hate Crime-Not PL 485.05,57
+disposition_yr,2024,297870
+disposition_yr,2023,231551
+disposition_yr,2022,207656
+disposition_yr,2021,182083
+disposition_yr,2019,133327
+disposition_yr,2025,119938
+disposition_yr,2020,113876
+disposition_yr,NA,92918
+disposition_mo,1,124190
+disposition_mo,3,115883
+disposition_mo,10,111971
+disposition_mo,9,109946
+disposition_mo,2,108674
+disposition_mo,7,104589
+disposition_mo,4,102958
+disposition_mo,11,102864
+disposition_mo,5,102204
+disposition_mo,12,101689
+disposition_mo,8,101110
+disposition_mo,6,100223
+disposition_mo,NA,92918
+disposition_court_type,NYC Criminal Court,672516
+disposition_court_type,City/Police Court,243736
+disposition_court_type,District Court,123705
+disposition_court_type,County Court,96059
+disposition_court_type,NA,92918
+disposition_court_type,Town Justice Court,69082
+disposition_court_type,Supreme Court,67924
+disposition_court_type,Village Justice Court,10810
+disposition_court_type,Grand Jury,2465
+disposition_court_type,Family Court,3
+disposition_court_type,Appellate Court,1
+disposition_region,NYC,737611
+disposition_region,Non-NYC,548690
+disposition_region,NA,92918
+disposition,Dismissed,620063
+disposition,Conviction,554317
+disposition,Pending,92918
+disposition,Covered by/Consolidated,89184
+disposition,Other/Unknown Favorable,11951
+disposition,YO Adjudication,3350
+disposition,Removed to Family Court,3049
+disposition,No True Bill,2761
+disposition,Acquitted,1626
+sentence,NA,821552
+sentence,Conditional Discharge,186776
+sentence,Fine,122362
+sentence,Time Served,77399
+sentence,Jail,62802
+sentence,Prison,45666
+sentence,Probation,45597
+sentence,Jail+Probation,11474
+sentence,Other,5591
+conv_class,NA,821588
+conv_class,Violation,221961
+conv_class,A Misdemeanor,150306
+conv_class,Infraction,56045
+conv_class,Unclassified Misdemeanor,32863
+conv_class,D Felony,31076
+conv_class,E Felony,30193
+conv_class,B Misdemeanor,12228
+conv_class,C Felony,11053
+conv_class,B Felony,10259
+conv_class,A-II Felony,800
+conv_class,A-I Felony Reducible,633
+conv_class,A-I Felony Non Reducible,210
+conv_class,Unspecified,4
+conv_attempt,NA,821588
+conv_attempt,Completed,525071
+conv_attempt,Attempted,32560
+conv_vfo,NA,821588
+conv_vfo,Not VFO,529964
+conv_vfo,VFO,26156
+conv_vfo,VFO-like class A-1 offenses,827
+conv_vfo,Underlying VFO Charge,684
+conv_firearm,NA,821588
+conv_firearm,Not Firearm Charge,540662
+conv_firearm,Top Charge is Firearm,15576
+conv_firearm,Underlying Charge is Firearm,1393
+conv_hate,NA,821588
+conv_hate,Not Hate Crime Charge,557320
+conv_hate,Hate Crime PL 485.05,175
+conv_hate,Like Hate Crime-Not PL 485.05,118
+conv_hate,Underlying Hate Crime Charge,18
+larg_court_type,NYC Criminal Court,766638
+larg_court_type,Non-NYC City or District Court,469050
+larg_court_type,Non-NYC Town or Village Justice Court,105108
+larg_court_type,NA,38423
+larg_rel_decision,ROR,733520
+larg_rel_decision,Bail Set,207428
+larg_rel_decision,Disposed at arraign,170629
+larg_rel_decision,NMR/RUS,164804
+larg_rel_decision,Remanded,39470
+larg_rel_decision,NA,38423
+larg_rel_decision,Unknown,24945
+larg_rel_outcome,ROR,733520
+larg_rel_outcome,NA,233997
+larg_rel_outcome,NMR/RUS,164804
+larg_rel_outcome,BailNotPaid w/in 5days,162422
+larg_rel_outcome,Remanded,39470
+larg_rel_outcome,BailPaid @arraign,24104
+larg_rel_outcome,BailPaid w/in 1-5days,20902
+larg_bail_made_indicator,NA,1340747
+larg_bail_made_indicator,Cash,19494
+larg_bail_made_indicator,Bond,13810
+larg_bail_made_indicator,Unknown,4295
+larg_bail_made_indicator,Credit,873
+larg_pretrial_supervision,NA,1225482
+larg_pretrial_supervision,Y,86655
+larg_pretrial_supervision,N,67082
+larg_contact_pretrial_service,NA,1225482
+larg_contact_pretrial_service,N,91417
+larg_contact_pretrial_service,Y,62320
+larg_electronic_monitoring,NA,1225482
+larg_electronic_monitoring,N,145771
+larg_electronic_monitoring,Y,7966
+larg_travel_restrictions,NA,1225482
+larg_travel_restrictions,N,152903
+larg_travel_restrictions,Y,834
+larg_passport_surrender,NA,1225482
+larg_passport_surrender,N,153560
+larg_passport_surrender,Y,177
+larg_no_firearms_or_weapons,NA,1225482
+larg_no_firearms_or_weapons,N,147025
+larg_no_firearms_or_weapons,Y,6712
+larg_maintain_employment,NA,1225482
+larg_maintain_employment,N,153332
+larg_maintain_employment,Y,405
+larg_maintain_housing,NA,1225482
+larg_maintain_housing,N,153607
+larg_maintain_housing,Y,130
+larg_maintain_school,NA,1225482
+larg_maintain_school,N,153606
+larg_maintain_school,Y,131
+larg_placement_in_mandatory_prog,NA,1225482
+larg_placement_in_mandatory_prog,N,153362
+larg_placement_in_mandatory_prog,Y,375
+larg_removal_to_hospital,NA,1225482
+larg_removal_to_hospital,N,153595
+larg_removal_to_hospital,Y,142
+larg_obey_order_of_protection,NA,1225482
+larg_obey_order_of_protection,N,151534
+larg_obey_order_of_protection,Y,2203
+larg_obey_court_cond_familyoff,NA,1225482
+larg_obey_court_cond_familyoff,N,153390
+larg_obey_court_cond_familyoff,Y,347
+larg_other_nmr,NA,1225482
+larg_other_nmr,N,128053
+larg_other_nmr,Y,25684
+uarg_court_type,NA,1244703
+uarg_court_type,County or Supreme Court,134516
+uarg_rel_decision,NA,1244703
+uarg_rel_decision,Disposed at arraign,31946
+uarg_rel_decision,Bail Set,30069
+uarg_rel_decision,ROR,26830
+uarg_rel_decision,Unknown,24955
+uarg_rel_decision,NMR/RUS,10889
+uarg_rel_decision,Remanded,9827
+uarg_rel_outcome,NA,1301604
+uarg_rel_outcome,ROR,26830
+uarg_rel_outcome,BailNotPaid w/in 5days,23321
+uarg_rel_outcome,NMR/RUS,10889
+uarg_rel_outcome,Remanded,9827
+uarg_rel_outcome,BailPaid @arraign,5242
+uarg_rel_outcome,BailPaid w/in 1-5days,1506
+uarg_bail_made_indicator,NA,1369327
+uarg_bail_made_indicator,Bond,5776
+uarg_bail_made_indicator,Cash,2267
+uarg_bail_made_indicator,Unknown,1756
+uarg_bail_made_indicator,Credit,93
+uarg_pretrial_supervision,NA,1368330
+uarg_pretrial_supervision,Y,5769
+uarg_pretrial_supervision,N,5120
+uarg_contact_pretrial_service,NA,1368330
+uarg_contact_pretrial_service,N,7436
+uarg_contact_pretrial_service,Y,3453
+uarg_electronic_monitoring,NA,1368330
+uarg_electronic_monitoring,N,10016
+uarg_electronic_monitoring,Y,873
+uarg_travel_restrictions,NA,1368330
+uarg_travel_restrictions,N,10485
+uarg_travel_restrictions,Y,404
+uarg_passport_surrender,NA,1368330
+uarg_passport_surrender,N,10794
+uarg_passport_surrender,Y,95
+uarg_no_firearms_or_weapons,NA,1368330
+uarg_no_firearms_or_weapons,N,10318
+uarg_no_firearms_or_weapons,Y,571
+uarg_maintain_employment,NA,1368330
+uarg_maintain_employment,N,10861
+uarg_maintain_employment,Y,28
+uarg_maintain_housing,NA,1368330
+uarg_maintain_housing,N,10881
+uarg_maintain_housing,Y,8
+uarg_maintain_school,NA,1368330
+uarg_maintain_school,N,10883
+uarg_maintain_school,Y,6
+uarg_placement_in_mandatory_prog,NA,1368330
+uarg_placement_in_mandatory_prog,N,10860
+uarg_placement_in_mandatory_prog,Y,29
+uarg_removal_to_hospital,NA,1368330
+uarg_removal_to_hospital,N,10881
+uarg_removal_to_hospital,Y,8
+uarg_obey_order_of_protection,NA,1368330
+uarg_obey_order_of_protection,N,10761
+uarg_obey_order_of_protection,Y,128
+uarg_obey_court_cond_familyoff,NA,1368330
+uarg_obey_court_cond_familyoff,N,10879
+uarg_obey_court_cond_familyoff,Y,10
+uarg_other_nmr,NA,1368330
+uarg_other_nmr,N,8452
+uarg_other_nmr,Y,2437
+pvfo_cnt,0,1162571
+pvfo_cnt,1,163087
+pvfo_cnt,2 or more,53561
+pnonvfo_cnt,0,1026099
+pnonvfo_cnt,1,182535
+pnonvfo_cnt,2,84662
+pnonvfo_cnt,4 or more,43653
+pnonvfo_cnt,3,42270
+pmisd_cnt,0,763790
+pmisd_cnt,1,176996
+pmisd_cnt,10 or more,106397
+pmisd_cnt,2,98491
+pmisd_cnt,3,65297
+pmisd_cnt,4,48548
+pmisd_cnt,5,36792
+pmisd_cnt,6,28545
+pmisd_cnt,7,22250
+pmisd_cnt,8,17962
+pmisd_cnt,9,14151
+pfireconv_yn,No,1311452
+pfireconv_yn,Yes,67767
+pfirearr_yn,No,1218046
+pfirearr_yn,Yes,161173
+prearraign_bw_2yrs,No,1099950
+prearraign_bw_2yrs,Yes,174161
+prearraign_bw_2yrs,Not Available,105108
+prearraign_bw_5yrs,No,1165438
+prearraign_bw_5yrs,Yes,108673
+prearraign_bw_5yrs,Not Available,105108
+pend_vfo,No,1284304
+pend_vfo,Yes,94915
+pend_nonvfo,No,1161644
+pend_nonvfo,Yes,217575
+pend_misd,No,1057840
+pend_misd,Yes,321379
+rearr_vfo,No,1313447
+rearr_vfo,Yes,65772
+rearr_vfo_180,No,1336457
+rearr_vfo_180,Yes,42762
+rearr_nonvfo,No,1216536
+rearr_nonvfo,Yes,162683
+rearr_nonvfo_180,No,1259883
+rearr_nonvfo_180,Yes,119336
+rearr_misd,No,1166667
+rearr_misd,Yes,212552
+rearr_misd_180,No,1218694
+rearr_misd_180,Yes,160525
+rearr_fire,No,1368061
+rearr_fire,Yes,11158
+rearr_fire_180,No,1373094
+rearr_fire_180,Yes,6125
+supervision,No,1281793
+supervision,Yes,97426
+bw_issued,No,1111070
+bw_issued,Yes,163041
+bw_issued,Not Available,105108

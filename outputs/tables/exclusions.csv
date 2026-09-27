@@ -1,0 +1,8 @@
+step,rule,rows,dropped
+Raw file,All rows in both CSV parts,1379219,NA
+NYC only,"First arraignment county is Bronx, Kings, New York, Queens or Richmond",773952,605267
+NYC Criminal Court arraignments,Lower court arraignment in NYC Criminal Court (drops superior court originations),766638,7314
+Arraigned Jan 2019 to Dec 2024,larg_yr between 2019 and 2024,766638,0
+Felony or misdemeanor,"Drops violations, infractions, unspecified or missing class",766536,102
+Known release decision,Drops disposed at arraignment and unknown decisions,628938,137598
+Analysis population,,628938,NA

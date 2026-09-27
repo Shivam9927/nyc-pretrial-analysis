@@ -1,0 +1,32 @@
+variable,level,n,n_restrictive
+charge_group,Misdemeanor,349364,23433
+charge_group,Other felony,76448,16850
+charge_group,Violent felony,87148,43036
+firearm_charge,0,487912,65992
+firearm_charge,1,25048,17327
+prior_felony_conv,0,351891,39530
+prior_felony_conv,1,161069,43789
+pending_case,0,336942,32544
+pending_case,1,176018,50775
+prior_bw_2yrs,0,448233,58663
+prior_bw_2yrs,1,64727,24656
+age_group,18-20,32923,6308
+age_group,21-24,59816,10079
+age_group,25-34,180984,29376
+age_group,35-49,162804,26766
+age_group,50+,76433,10790
+sex,Female,94725,6519
+sex,Male,418235,76800
+race_eth,Asian,31743,3106
+race_eth,Black,250503,46314
+race_eth,Hispanic,174629,26336
+race_eth,Other,1618,148
+race_eth,White,54467,7415
+borough,Bronx,89432,13914
+borough,Brooklyn,157654,23081
+borough,Manhattan,117139,23459
+borough,Queens,122993,18810
+borough,Staten Island,25742,4055
+period,First amendments,166847,28561
+period,Later amendments,309269,49519
+period,Reform,36844,5239

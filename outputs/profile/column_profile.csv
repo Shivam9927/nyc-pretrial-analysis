@@ -1,0 +1,115 @@
+column,type_read,n_missing,pct_missing,n_distinct,example
+caseid,character,0,0,1379219,2085601
+arr_age,character,6587,0.48,82,19
+arr_sex,character,0,0,3,Male
+arr_re_combi,character,0,0,7,White
+arr_yr,character,955,0.07,53,1981
+arr_mo,character,955,0.07,13,1
+arr_agency_name,character,6583,0.48,785,NYCPD PCT 019
+arr_county,character,6583,0.48,64,New York
+arr_region,character,6583,0.48,4,NYC
+arr_charge,character,6583,0.48,1535,PL 155.25
+arr_class,character,6583,0.48,12,A Misdemeanor
+arr_attempt,character,6583,0.48,3,Completed
+arr_vfo,character,6583,0.48,5,Not VFO
+arr_firearm,character,6583,0.48,4,Not Firearm Charge
+arr_hate,character,6583,0.48,5,Not Hate Crime Charge
+arrest_type,character,271914,19.72,3,DAT
+crime_age,character,6595,0.48,83,19
+crime_yr,character,6591,0.48,53,1981
+crime_mo,character,6591,0.48,13,1
+larg_yr,character,16526,1.2,39,2019
+larg_mo,character,16526,1.2,13,3
+larg_charge,character,18636,1.35,1476,PL 155.25
+larg_class,character,18636,1.35,14,A Misdemeanor
+larg_attempt,character,18636,1.35,3,Completed
+larg_vfo,character,18636,1.35,5,Not VFO
+larg_firearm,character,18636,1.35,4,Not Firearm Charge
+larg_hate,character,19050,1.38,5,Not Hate Crime Charge
+uarg_yr,character,1174659,85.17,19,2024
+uarg_mo,character,1174659,85.17,13,3
+uarg_charge,character,1192141,86.44,1184,PL 220.16   01
+uarg_class,character,1192141,86.44,14,B Felony
+uarg_attempt,character,1192141,86.44,3,Completed
+uarg_vfo,character,1192141,86.44,5,Not VFO
+uarg_firearm,character,1192141,86.44,4,Not Firearm Charge
+uarg_hate,character,1192141,86.44,5,Not Hate Crime Charge
+disposition_yr,character,92918,6.74,8,2019
+disposition_mo,character,92918,6.74,13,9
+disposition_court_name,character,92918,6.74,1192,New York County Criminal Court
+disposition_court_type,character,92918,6.74,11,NYC Criminal Court
+disposition_county,character,92918,6.74,63,New York
+disposition_region,character,92918,6.74,3,NYC
+disposition,character,0,0,9,Dismissed
+sentence,character,821552,59.57,9,Fine
+conv_charge,character,821588,59.57,1369,PL 240.20
+conv_class,character,821588,59.57,14,Violation
+conv_attempt,character,821588,59.57,3,Completed
+conv_vfo,character,821588,59.57,5,Not VFO
+conv_firearm,character,821588,59.57,4,Not Firearm Charge
+conv_hate,character,821588,59.57,5,Not Hate Crime Charge
+days_btw_arg_disp,character,92918,6.74,2417,183
+larg_court_name,character,38423,2.79,1097,New York Criminal Court
+larg_court_type,character,38423,2.79,4,NYC Criminal Court
+larg_county_name,character,38423,2.79,63,New York
+larg_rel_decision,character,38423,2.79,7,Disposed at arraign
+larg_rel_outcome,character,233997,16.97,7,ROR
+larg_bail_paid_days,character,1318779,95.62,472,4
+larg_bail_amount,character,1181844,85.69,213,1
+larg_bail_made_indicator,character,1340747,97.21,5,Cash
+larg_pretrial_supervision,character,1225482,88.85,3,N
+larg_contact_pretrial_service,character,1225482,88.85,3,N
+larg_electronic_monitoring,character,1225482,88.85,3,N
+larg_travel_restrictions,character,1225482,88.85,3,Y
+larg_passport_surrender,character,1225482,88.85,3,N
+larg_no_firearms_or_weapons,character,1225482,88.85,3,N
+larg_maintain_employment,character,1225482,88.85,3,N
+larg_maintain_housing,character,1225482,88.85,3,N
+larg_maintain_school,character,1225482,88.85,3,N
+larg_placement_in_mandatory_prog,character,1225482,88.85,3,N
+larg_removal_to_hospital,character,1225482,88.85,3,N
+larg_obey_order_of_protection,character,1225482,88.85,3,N
+larg_obey_court_cond_familyoff,character,1225482,88.85,3,N
+larg_other_nmr,character,1225482,88.85,3,N
+uarg_court_name,character,1244703,90.25,96,Queens Supreme Criminal Court
+uarg_court_type,character,1244703,90.25,2,County or Supreme Court
+uarg_county_name,character,1244703,90.25,63,Queens
+uarg_rel_decision,character,1244703,90.25,7,Disposed at arraign
+uarg_rel_outcome,character,1301604,94.37,7,ROR
+uarg_bail_paid_days,character,1369348,99.28,428,7
+uarg_bail_amount,character,1349150,97.82,150,1
+uarg_bail_made_indicator,character,1369327,99.28,5,Unknown
+uarg_pretrial_supervision,character,1368330,99.21,3,N
+uarg_contact_pretrial_service,character,1368330,99.21,3,Y
+uarg_electronic_monitoring,character,1368330,99.21,3,N
+uarg_travel_restrictions,character,1368330,99.21,3,N
+uarg_passport_surrender,character,1368330,99.21,3,N
+uarg_no_firearms_or_weapons,character,1368330,99.21,3,N
+uarg_maintain_employment,character,1368330,99.21,3,N
+uarg_maintain_housing,character,1368330,99.21,3,N
+uarg_maintain_school,character,1368330,99.21,3,N
+uarg_placement_in_mandatory_prog,character,1368330,99.21,3,N
+uarg_removal_to_hospital,character,1368330,99.21,3,N
+uarg_obey_order_of_protection,character,1368330,99.21,3,N
+uarg_obey_court_cond_familyoff,character,1368330,99.21,3,N
+uarg_other_nmr,character,1368330,99.21,3,N
+pvfo_cnt,character,0,0,3,0
+pnonvfo_cnt,character,0,0,5,0
+pmisd_cnt,character,0,0,11,0
+pfireconv_yn,character,0,0,2,No
+pfirearr_yn,character,0,0,2,No
+prearraign_bw_2yrs,character,0,0,3,No
+prearraign_bw_5yrs,character,0,0,3,No
+pend_vfo,character,0,0,2,No
+pend_nonvfo,character,0,0,2,No
+pend_misd,character,0,0,2,No
+rearr_vfo,character,0,0,2,No
+rearr_vfo_180,character,0,0,2,No
+rearr_nonvfo,character,0,0,2,No
+rearr_nonvfo_180,character,0,0,2,No
+rearr_misd,character,0,0,2,No
+rearr_misd_180,character,0,0,2,No
+rearr_fire,character,0,0,2,No
+rearr_fire_180,character,0,0,2,No
+supervision,character,0,0,2,No
+bw_issued,character,0,0,3,No

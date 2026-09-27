@@ -1,0 +1,179 @@
+---
+title: "NYC Pretrial Release Decisions Before and After Bail Reform"
+format:
+  pdf:
+    documentclass: article
+    papersize: letter
+    fig-pos: "H"
+geometry: "margin=0.75in"
+fontsize: 10pt
+header-includes:
+  - \usepackage{float}
+  - \usepackage{booktabs}
+  - \setlength{\parskip}{3pt}
+  - \usepackage{titling}
+  - \setlength{\droptitle}{-5em}
+  - \pretitle{\begin{center}\Large\bfseries}
+  - \posttitle{\par\vspace{0.2em}{\normalsize\mdseries 2019 to 2024 $\cdot$ Research brief $\cdot$ Shivam Pawar $\cdot$ September 2026}\end{center}\vspace{-1.8em}}
+  - \usepackage{titlesec}
+  - \titlespacing*{\section}{0pt}{8pt}{3pt}
+  - \titlespacing*{\subsection}{0pt}{7pt}{2pt}
+  - \usepackage{enumitem}
+  - \setlist{itemsep=1pt,topsep=2pt}
+  - \usepackage[font=small,skip=2pt]{caption}
+  - \setlength{\textfloatsep}{6pt}
+  - \setlength{\intextsep}{4pt}
+  - \setlength{\parindent}{0pt}
+execute:
+  echo: false
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| echo: false
+#| include: false
+source(here::here("R", "utils.R"))
+library(knitr)
+opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.pos = "H")
+
+excl   <- read_table("exclusions")
+recon  <- read_table("reconciliation_table3")
+per    <- read_table("decision_shares_by_period")
+chg    <- read_table("fig2_restrictive_by_charge")
+yrchg  <- read_table("restrictive_by_year_charge")
+out    <- read_table("fig4_outcomes_by_release")
+ors    <- read_table("regression_or_main")
+samp   <- read_table("regression_sample")
+rob    <- read_table("regression_robustness_summary")
+bail   <- read_table("bail_paid_by_period")
+its_r  <- read_table("its_results")
+cond_r <- read_table("nmr_condition_or")
+cond_s <- read_table("nmr_condition_summary")
+cond_y <- read_table("outcomes_by_nmr_condition")
+# CI in the same direction as the sentence (a fall of 6.9 is reported as 6.1 to 7.6)
+its_ci <- function(i) { b <- sort(abs(c(its_r$conf.low[i], its_r$conf.high[i]))); sprintf("95%% CI %.1f to %.1f", b[1], b[2]) }
+its_w  <- read_table("its_weights")
+sup_y  <- function(y) cond_y$share_of_nmr[cond_y$arraign_year == y & cond_y$nmr_condition == "Pretrial supervision"]
+tab1   <- read_table("table1_population")
+
+N <- excl$rows[excl$step == "Analysis population"]
+sh  <- function(p, d) per$share[per$period == p & per$release_decision == d]
+rr  <- function(p) { x <- per[per$period == p, ]; sum(x$n[x$release_decision %in% c("Bail set", "Remand")]) / sum(x$n) }
+cg  <- function(g, p) chg$restrictive_rate[chg$charge_group == g & chg$period == p]
+yc  <- function(g, y) yrchg$restrictive_rate[yrchg$charge_group == g & yrchg$arraign_year == y]
+oc  <- function(t, p, o) out$rate[out$release_type == t & out$period == p & out$outcome == o]
+or1 <- function(t) ors$estimate[ors$term == t]
+ci  <- function(t) { r <- ors[ors$term == t, ]; sprintf("%.2f to %.2f", r$conf.low, r$conf.high) }
+p0  <- function(x) pct(x, 0)
+```
+
+## Key findings
+
+- **The decision mix shifted toward non-monetary release.** Among `r comma(N)` NYC Criminal Court arraignments, non-monetary release rose from `r p0(sh("Pre-reform","Non-monetary"))` of decisions in 2019 to `r p0(sh("Later amendments","Non-monetary"))` after June 2022, while ROR fell from `r p0(sh("Pre-reform","ROR"))` to `r p0(sh("Later amendments","ROR"))` and bail set fell from `r p0(sh("Pre-reform","Bail set"))` to `r p0(sh("Later amendments","Bail set"))`. The 2019 non-monetary figure is likely undercounted.
+- **Bail or remand became less common in every charge group.** The restrictive rate for misdemeanors fell from `r p0(cg("Misdemeanor","Pre-reform"))` to `r p0(cg("Misdemeanor","Later amendments"))`, and for violent felonies from `r p0(cg("Violent felony","Pre-reform"))` to `r p0(cg("Violent felony","Later amendments"))`. For violent felonies it kept falling after the 2022 and 2023 amendments, from `r p0(yc("Violent felony",2022))` in 2022 to `r p0(yc("Violent felony",2024))` in 2024.
+- **Cases released with conditions had the highest failure rates.** After June 2022, `r p0(oc("Non-monetary","Later amendments","Rearrest within 180 days"))` of non-monetary releases had a rearrest within 180 days and `r p0(oc("Non-monetary","Later amendments","Bench warrant (FTA)"))` a bench warrant, compared with `r p0(oc("ROR","Later amendments","Rearrest within 180 days"))` and `r p0(oc("ROR","Later amendments","Bench warrant (FTA)"))` for ROR. Judges set conditions for people they see as higher risk, so this should not be read as an effect of the conditions.
+- **Charge and history had the strongest adjusted associations.** After adjusting for the characteristics in the model, a violent felony charge was associated with `r sprintf("%.0f", or1("charge_groupViolent felony"))` times the odds of bail or remand compared with a misdemeanor, and an open case at arrest with `r sprintf("%.1f", or1("pending_case"))` times the odds. Odds for Black and Hispanic people were close to those for White people after adjustment. This does not rule out disparity, because charge and prior history can themselves reflect earlier disparities in arrest and charging.
+- **Courts were already moving before the law.** The reform was passed in April 2019 and took effect in January 2020, so judges knew it was coming for most of the year. Adjusted for charge mix, the bail or remand rate was falling by `r sprintf("%.1f", abs(its_r$estimate[4]))` points a year from January to October 2019 (`r its_ci(4)`). Against that trend, the rate was still `r sprintf("%.1f", abs(its_r$estimate[1]))` points lower than predicted in January 2020 (`r its_ci(1)`).
+
+## Background
+
+New York's bail reform was passed in April 2019 as part of the state budget and took effect on January 1, 2020. It removed money bail and remand for most misdemeanors and nonviolent felonies and required judges to choose the least restrictive option that would secure a person's return to court. Amendments effective July 2, 2020 made more charges bail eligible. Amendments effective May 9, 2022 added some gun charges and repeat theft cases, and 2023 amendments removed the "least restrictive" requirement for bail-eligible cases, giving judges more discretion.
+
+## Data and methods
+
+The data is the DCJS Supplemental Pretrial Release Data File, which covers cases arraigned in 2019 and from 2020 to 2024. Each row is a criminal cycle, from arrest through final disposition, so one person can appear more than once. The analysis population is NYC Criminal Court arraignments from January 2019 to December 2024 with a felony or misdemeanor top charge and a known release decision (`r comma(N)` cycles). Using the same rules as the official DCJS summary tables, the file reproduces the official NYC release decision counts for every year and category exactly, as well as the official failure to appear and 180-day rearrest counts.
+
+```{r}
+#| label: tbl-excl
+excl |>
+  filter(step != "Analysis population") |>
+  transmute(Step = step, `Rows remaining` = comma(rows),
+            Dropped = ifelse(is.na(dropped), "", comma(dropped))) |>
+  kable(booktabs = TRUE, align = "lrr", caption = "Population rules and row counts")
+```
+
+A decision is **restrictive** if bail was set or the person was remanded, and not restrictive if the person was released on recognizance (ROR) or with non-monetary conditions. Periods follow the law: pre-reform (2019), reform (January to June 2020), first amendments (July 2020 to May 2022) and later amendments (June 2022 to December 2024). Released cases are ROR, non-monetary, or bail paid within five days. The regression is a logistic model of a restrictive decision on charge group, firearm charge, prior felony conviction, open case at arrest, bench warrant in the prior two years, age group, sex, race and ethnicity, borough and period, fitted on `r comma(samp$complete_cases[1])` post-reform arraignments with complete data.
+
+## Findings
+
+```{r}
+#| label: fig1
+#| fig-cap: "Release decisions by month, 2019 to 2024"
+#| out-width: "84%"
+#| fig-align: center
+include_graphics(proj_path("outputs", "figures", "fig1_decision_mix_monthly.png"))
+```
+
+**Decision mix (Figure 1).** The biggest change was the growth of non-monetary release, mostly at the expense of ROR. Bail setting started falling in late 2019, before the law took effect. Non-monetary release is near zero from April to June 2020 and jumps in July 2020, when detailed reporting became law, which points to a reporting change rather than a change in practice.
+
+```{r}
+#| label: fig2
+#| fig-cap: "Restrictive decisions by charge group and period"
+#| out-width: "84%"
+#| fig-align: center
+include_graphics(proj_path("outputs", "figures", "fig2_restrictive_by_charge.png"))
+```
+
+**Charge severity (Figure 2).** Restrictive decisions dropped sharply in each charge group in early 2020 and rose again under the first amendments, but stayed below 2019 levels. Most bail and remand decisions involve felonies. The share of arraignments with a violent felony charge rose from `r tab1[["Pre-reform"]][tab1$Characteristic == "Violent felony"]` in 2019 to `r tab1[["Later amendments"]][tab1$Characteristic == "Violent felony"]` after June 2022, which pushes the overall restrictive rate up even as the rate within each group falls.
+
+**After release (Figure 5, appendix).** Rearrest within 180 days for ROR cases was `r p0(oc("ROR","Pre-reform","Rearrest within 180 days"))` in 2019 and `r p0(oc("ROR","Later amendments","Rearrest within 180 days"))` after June 2022, with a brief rise in early 2020. Non-monetary releases had higher rates of both outcomes in every period. Bench warrant rates for ROR fell by about half in 2020, when many court dates were cancelled, and have only partly recovered.
+
+```{r}
+#| label: fig5
+#| fig-cap: "Adjusted odds ratios of a restrictive decision, post-reform"
+#| out-width: "70%"
+#| fig-align: center
+include_graphics(proj_path("outputs", "figures", "fig5_regression_odds_ratios.png"))
+```
+
+**Adjusted associations (Figure 3).** Charge, a firearm charge, and prior history had the largest associations with a restrictive decision. Women had lower odds than men (odds ratio `r sprintf("%.2f", or1("sexFemale"))`). Arraignments in Brooklyn and the Bronx had lower odds than in Manhattan. The odds ratios for Black (`r sprintf("%.2f", or1("race_ethBlack"))`, 95% CI `r ci("race_ethBlack")`) and Hispanic (`r sprintf("%.2f", or1("race_ethHispanic"))`, 95% CI `r ci("race_ethHispanic")`) people were close to 1. This does not rule out disparity, because charge and history can carry earlier disparities in arrest and charging. Dropping race from the model changed other odds ratios by at most `r p0(rob$max_rel_change_norace)`, and the gap between felony and misdemeanor cases varied by period.
+
+```{r}
+#| label: fig6
+#| fig-cap: "Charge-adjusted bail or remand rate by month, with segmented regression"
+#| out-width: "74%"
+#| fig-align: center
+include_graphics(proj_path("outputs", "figures", "fig6_its_restrictive.png"))
+```
+
+**Timing of the change (Figure 4).** An interrupted time series models the monthly bail or remand rate, standardized to the 2019 to 2024 charge mix (`r p0(its_w$w[its_w$charge_group == "Misdemeanor"])` misdemeanor, `r p0(its_w$w[its_w$charge_group == "Other felony"])` other felony, `r p0(its_w$w[its_w$charge_group == "Violent felony"])` violent felony), with Newey-West standard errors to allow for correlation between months. The law was passed in April 2019, so judges knew for most of the year that it was coming. The rate was already falling by `r sprintf("%.1f", abs(its_r$estimate[4]))` points a year from January to October 2019 (`r its_ci(4)`) and dropped sharply in December, so November and December 2019 were left out of the fit. Against the 2019 trend, the rate was `r sprintf("%.1f", abs(its_r$estimate[1]))` points lower in January 2020 than predicted (`r its_ci(1)`). It rose `r sprintf("%.1f", its_r$estimate[2])` points when the July 2020 amendments took effect (`r its_ci(2)`) and `r sprintf("%.1f", its_r$estimate[3])` points after the 2022 amendments (`r its_ci(3)`), then stayed roughly flat through 2024. The counterfactual depends on the 2019 trend continuing, which is uncertain given the short pre-period of 10 months. The design also cannot separate the law from other changes at the same time, such as COVID closures.
+
+**Condition types (Figure 6, appendix).** From 2020 on, the file records the conditions set for each non-monetary release. Pretrial supervision grew from `r p0(sup_y(2020))` of these releases in 2020 to `r p0(sup_y(2024))` in 2024, and the rest were mostly contact with pretrial services only. The two groups had almost the same outcomes. After adjusting for charge, history, demographics, borough and year, supervision was associated with an odds ratio of `r sprintf("%.2f", cond_r$estimate[cond_r$term == "Pretrial supervision" & cond_r$outcome == "Bench warrant (FTA)"])` (95% CI `r with(cond_r[cond_r$term == "Pretrial supervision" & cond_r$outcome == "Bench warrant (FTA)", ], sprintf("%.2f to %.2f", conf.low, conf.high))`) for a bench warrant and `r sprintf("%.2f", cond_r$estimate[cond_r$term == "Pretrial supervision" & cond_r$outcome == "Rearrest within 180 days"])` (95% CI `r with(cond_r[cond_r$term == "Pretrial supervision" & cond_r$outcome == "Rearrest within 180 days", ], sprintf("%.2f to %.2f", conf.low, conf.high))`) for a rearrest within 180 days, compared with contact-only release. Judges choose the condition using information this file does not have, so this should not be read as the effect of supervision.
+
+## Limitations
+
+- Results are associations, not causal effects. Judges see information that is not in this file.
+- Pre-2020 release reporting was more limited, so 2019 comparisons, especially of non-monetary release, need caution.
+- 2020 overlaps with COVID court closures and virtual arraignments.
+- The unit is a criminal cycle, and there is no person ID, so one person can appear more than once and standard errors do not account for this.
+- Dates are month-level only, so the May 2022 amendment month cannot be split.
+- The time series has only 10 pre-reform months to estimate the 2019 trend, so the counterfactual after January 2020 is uncertain.
+- Race and ethnicity differences may reflect factors not in the model, such as charge details and prior history not captured by the available fields.
+
+## Next steps
+
+- Link to NYC Department of Correction data to measure time in detention for people who could not pay bail. This needs a shared person or case ID, which neither public file has.
+- Add a comparison group, such as courts outside NYC, to separate the law from citywide changes like COVID closures.
+- Study which cases get supervision rather than contact-only release, using data on the judge's risk assessment if it becomes available.
+
+\newpage
+
+## Appendix
+
+```{r}
+#| label: fig4
+#| fig-cap: "Bench warrants and rearrests among released cases"
+#| out-width: "74%"
+#| fig-align: center
+include_graphics(proj_path("outputs", "figures", "fig4_outcomes_by_release.png"))
+```
+
+```{r}
+#| label: fig7
+#| fig-cap: "Bench warrants and rearrests among non-monetary releases, by condition type"
+#| out-width: "74%"
+#| fig-align: center
+include_graphics(proj_path("outputs", "figures", "fig7_fta_by_condition.png"))
+```

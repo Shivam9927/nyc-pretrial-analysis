@@ -1,0 +1,243 @@
+---
+title: "Descriptive analysis: NYC pretrial release decisions, 2019 to 2024"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+source(here::here("R", "utils.R"))
+source(here::here("R", "theme.R"))
+library(knitr)
+
+d <- read_processed() |>
+  mutate(period = factor(period, levels = period_levels),
+         release_decision = factor(release_decision, levels = decision_levels),
+         charge_group = factor(charge_group, levels = charge_levels),
+         release_type = factor(release_type, levels = release_levels))
+N <- nrow(d)
+
+fig1_data <- read_table("fig1_monthly_shares") |>
+  mutate(release_decision = factor(release_decision, levels = decision_levels),
+         arraign_month = as.Date(arraign_month))
+by_period <- read_table("decision_shares_by_period") |>
+  mutate(period = factor(period, levels = period_levels))
+fig2_data <- read_table("fig2_restrictive_by_charge") |>
+  mutate(period = factor(period, levels = period_levels),
+         charge_group = factor(charge_group, levels = charge_levels))
+fig3_data <- read_table("fig3_restrictive_by_borough") |>
+  mutate(period = factor(period, levels = period_levels))
+fig4_data <- read_table("fig4_outcomes_by_release") |>
+  mutate(period = factor(period, levels = period_levels),
+         release_type = factor(release_type, levels = release_levels))
+
+share_of <- function(p, dec) by_period$share[by_period$period == p & by_period$release_decision == dec]
+restr_of <- function(p) with(d, mean(restrictive[period == p]))
+```
+
+The analysis population is **`r comma(N)`** NYC Criminal Court arraignments (criminal cycles) from January 2019 to December 2024 with a felony or misdemeanor top charge and a known release decision. One person can appear more than once, so every count below is a count of cycles, not people.
+
+## Table 1: Population by period
+
+```{r}
+#| label: table1
+tab1 <- d |>
+  group_by(period) |>
+  summarise(
+    `Arraignments (n)`         = comma(n()),
+    `Months in period`         = as.character(n_distinct(arraign_month)),
+    `Violent felony`           = pct(mean(charge_group == "Violent felony")),
+    `Other felony`             = pct(mean(charge_group == "Other felony")),
+    `Misdemeanor`              = pct(mean(charge_group == "Misdemeanor")),
+    `Median age`               = as.character(median(age, na.rm = TRUE)),
+    `Male`                     = pct(mean(sex == "Male", na.rm = TRUE)),
+    `Black`                    = pct(mean(race_eth == "Black", na.rm = TRUE)),
+    `Hispanic`                 = pct(mean(race_eth == "Hispanic", na.rm = TRUE)),
+    `White`                    = pct(mean(race_eth == "White", na.rm = TRUE)),
+    `Asian`                    = pct(mean(race_eth == "Asian", na.rm = TRUE)),
+    `Prior felony conviction`  = pct(mean(prior_felony_conv)),
+    `Open case at arrest`      = pct(mean(pending_case)),
+    `Bench warrant in prior 2 years` = pct(mean(prior_bw_2yrs)),
+    `Restrictive decision`     = pct(mean(restrictive)),
+    .groups = "drop"
+  ) |>
+  pivot_longer(-period, names_to = "Characteristic") |>
+  pivot_wider(names_from = period, values_from = value)
+
+write_csv(tab1, proj_path("outputs", "tables", "table1_population.csv"))
+kable(tab1, align = "lrrrr")
+```
+
+Race and sex percentages exclude cycles where the value is unknown. The share of violent felony charges rose after 2019, so part of any change in the overall restrictive rate reflects a changing case mix. This is one reason Q2 looks within charge groups.
+
+## Q1: How did the mix of release decisions change?
+
+```{r}
+#| label: fig1
+#| fig-width: 7
+#| fig-height: 4.5
+period_bands <- tibble(
+  period = factor(period_levels, levels = period_levels),
+  start  = as.Date(c("2019-01-01", "2020-01-01", "2020-07-01", "2022-06-01")),
+  end    = as.Date(c("2020-01-01", "2020-07-01", "2022-06-01", "2025-01-01")),
+  label  = c("Pre-reform", "Reform", "First\namendments", "Later amendments")
+)
+end_labels <- fig1_data |>
+  filter(arraign_month == max(arraign_month))
+
+nmr_pre  <- share_of("Pre-reform", "Non-monetary")
+nmr_late <- share_of("Later amendments", "Non-monetary")
+bail_pre  <- share_of("Pre-reform", "Bail set")
+bail_late <- share_of("Later amendments", "Bail set")
+
+fig1 <- ggplot(fig1_data, aes(arraign_month, share, colour = release_decision)) +
+  geom_rect(data = period_bands, inherit.aes = FALSE,
+            aes(xmin = start, xmax = end, ymin = -Inf, ymax = Inf),
+            fill = rep(c("grey96", "white"), 2)) +
+  geom_text(data = period_bands, inherit.aes = FALSE,
+            aes(x = start + (end - start) / 2, y = 0.93, label = label),
+            size = 2.7, colour = "grey45", lineheight = 0.9) +
+  geom_line(linewidth = 0.7) +
+  geom_text(data = end_labels, aes(label = release_decision),
+            hjust = 0, nudge_x = 25, size = 3.1, show.legend = FALSE) +
+  scale_colour_manual(values = decision_colors, guide = "none") +
+  scale_y_continuous(labels = label_percent(accuracy = 1), limits = c(0, 0.97),
+                     breaks = seq(0, 0.8, 0.2)) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date("2025-01-01"), by = "year"), date_labels = "%Y",
+               expand = expansion(mult = c(0.01, 0.17))) +
+  labs(
+    title = "Non-monetary release replaced part of ROR and bail after 2019",
+    subtitle = paste0("Share of arraignments by release decision, by month.\nNon-monetary release: ",
+                      pct(nmr_pre, 0), " before reform, ", pct(nmr_late, 0),
+                      " after June 2022. Bail set: ", pct(bail_pre, 0), " to ", pct(bail_late, 0), "."),
+    x = NULL, y = "Share of arraignments",
+    caption = source_caption(N, "Non-monetary release before July 2020 is likely undercounted: detailed release reporting became law on July 2, 2020. Mar to Jun 2020 overlaps COVID court closures.")
+  ) +
+  theme_pretrial() +
+  theme(panel.grid.major.x = element_blank())
+save_fig(fig1, "fig1_decision_mix_monthly")
+fig1
+```
+
+Before reform, about `r pct(share_of("Pre-reform","ROR"),0)` of arraignments ended in release on recognizance and `r pct(bail_pre,0)` in bail. After the 2022 amendments, ROR fell to `r pct(share_of("Later amendments","ROR"),0)` and bail to `r pct(bail_late,0)`, while non-monetary release (supervised release and other conditions) grew to `r pct(nmr_late,0)`. Remand stayed around 1% throughout.
+
+Two patterns need care. Bail setting started falling in late 2019, before the law took effect, as courts prepared for it. Non-monetary release drops to almost zero from April to June 2020 and jumps in July 2020, the month detailed reporting became law. That pattern points to a reporting change, not a real change in practice, and it means the 2019 non-monetary share (`r pct(nmr_pre,1)`) is likely undercounted.
+
+## Q2: How do decisions differ by charge severity and borough?
+
+```{r}
+#| label: fig2
+#| fig-width: 7
+#| fig-height: 4.5
+misd_pre  <- with(fig2_data, restrictive_rate[charge_group == "Misdemeanor" & period == "Pre-reform"])
+misd_late <- with(fig2_data, restrictive_rate[charge_group == "Misdemeanor" & period == "Later amendments"])
+
+fig2 <- ggplot(fig2_data, aes(charge_group, restrictive_rate, fill = period)) +
+  geom_col(position = position_dodge(width = 0.82), width = 0.78, colour = "white",
+           linewidth = 0.4) +
+  geom_text(aes(label = pct(restrictive_rate, 0)),
+            position = position_dodge(width = 0.82), vjust = -0.4, size = 2.8,
+            colour = "grey25") +
+  scale_fill_manual(values = period_colors) +
+  scale_y_continuous(labels = label_percent(accuracy = 1), limits = c(0, 0.7),
+                     expand = expansion(mult = c(0, 0.02))) +
+  labs(
+    title = "Bail or remand became less common in every charge group after 2019",
+    subtitle = paste0("Share of arraignments with bail set or remand, by top charge at arraignment and period.\n",
+                      "Misdemeanors: ", pct(misd_pre, 0), " before reform, ", pct(misd_late, 0), " after June 2022."),
+    x = NULL, y = "Bail set or remand",
+    caption = source_caption(N)
+  ) +
+  theme_pretrial()
+save_fig(fig2, "fig2_restrictive_by_charge")
+fig2
+```
+
+Restrictive decisions fell in each charge group between 2019 and the reform period. The rate rose again in all three groups under the first amendments, which made more charges bail eligible. The rate after June 2022 is still below the 2019 level for all three groups. Because remand and bail were already rare for misdemeanors, most of the change in the overall rate comes from felony cases.
+
+```{r}
+#| label: fig3
+#| fig-width: 7
+#| fig-height: 4.5
+borough_order <- fig3_data |> filter(period == "Later amendments") |>
+  arrange(restrictive_rate) |> pull(borough)
+fig3_plot <- fig3_data |> mutate(borough = factor(borough, levels = borough_order))
+range_df <- fig3_plot |> group_by(borough) |>
+  summarise(lo = min(restrictive_rate), hi = max(restrictive_rate))
+
+fig3 <- ggplot(fig3_plot, aes(restrictive_rate, borough)) +
+  geom_segment(data = range_df, aes(x = lo, xend = hi, y = borough, yend = borough),
+               colour = "grey80", linewidth = 1.2, inherit.aes = FALSE) +
+  geom_point(aes(colour = period), size = 3.2) +
+  scale_colour_manual(values = period_colors) +
+  scale_x_continuous(labels = label_percent(accuracy = 1)) +
+  labs(
+    title = "Manhattan had the highest restrictive rate in three of four periods",
+    subtitle = "Share of arraignments with bail set or remand, by borough of arraignment and period.\nBoroughs sorted by the rate after June 2022. Not adjusted for charge mix.",
+    x = "Bail set or remand", y = NULL,
+    caption = source_caption(N)
+  ) +
+  theme_pretrial()
+save_fig(fig3, "fig3_restrictive_by_borough")
+fig3
+```
+
+Borough rates differ by several percentage points in each period. These are raw rates, and boroughs differ in charge mix, so the regression in `02_regression.qmd` adjusts for charge and history before comparing boroughs.
+
+## Q3: What happened after release?
+
+```{r}
+#| label: fig4
+#| fig-width: 7
+#| fig-height: 4.5
+fig4_plot <- fig4_data |>
+  filter(outcome %in% c("Bench warrant (FTA)", "Rearrest within 180 days"))
+n_released <- sum(!is.na(d$release_type))
+nmr_rearr_late <- with(fig4_plot, rate[release_type == "Non-monetary" & period == "Later amendments" & outcome == "Rearrest within 180 days"])
+ror_rearr_late <- with(fig4_plot, rate[release_type == "ROR" & period == "Later amendments" & outcome == "Rearrest within 180 days"])
+
+fig4 <- ggplot(fig4_plot, aes(release_type, rate, fill = period)) +
+  geom_col(position = position_dodge(width = 0.85), width = 0.8, colour = "white",
+           linewidth = 0.4) +
+  geom_errorbar(aes(ymin = ci_low, ymax = ci_high),
+                position = position_dodge(width = 0.85), width = 0.25,
+                colour = "grey30", linewidth = 0.35) +
+  facet_wrap(~ outcome) +
+  scale_fill_manual(values = period_colors) +
+  scale_y_continuous(labels = label_percent(accuracy = 1),
+                     expand = expansion(mult = c(0, 0.05))) +
+  labs(
+    title = "Non-monetary releases had the highest warrant and rearrest rates",
+    subtitle = paste0("Share of released cases with a bench warrant before disposition, or a rearrest within 180 days.\n",
+                      "Bars show 95% confidence intervals. Released = ROR, non-monetary, or bail paid within 5 days."),
+    x = NULL, y = "Share of released cases",
+    caption = paste(strwrap(paste0("Source: NYS DCJS Supplemental Pretrial Release Data File. NYC Criminal Court arraignments, 2019 to 2024. ",
+                     "Rearrests are fingerprintable misdemeanors or felonies. n = ", comma(n_released), " released criminal cycles."), 120), collapse = "\n")
+  ) +
+  theme_pretrial() +
+  theme(panel.spacing = unit(1.2, "lines"))
+save_fig(fig4, "fig4_outcomes_by_release")
+fig4
+```
+
+After June 2022, `r pct(nmr_rearr_late,0)` of cases released with non-monetary conditions had a rearrest within 180 days, compared with `r pct(ror_rearr_late,0)` of ROR cases. This gap does not mean conditions cause rearrest. Judges set conditions for people they see as higher risk, so the groups differ before release. Bench warrant rates for ROR cases fell by about half in the reform period, when many court dates were cancelled, and have only partly recovered since.
+
+## Supporting tables
+
+```{r}
+#| label: supporting
+read_table("decision_shares_by_year") |>
+  mutate(share = pct(share), share_change_pts = round(100 * share_change_pts, 1)) |>
+  kable(caption = "Release decision shares by year, with change in percentage points from the prior year")
+
+read_table("bail_paid_by_period") |>
+  mutate(period = factor(period, levels = period_levels)) |> arrange(period) |>
+  mutate(share_paid_5d = pct(share_paid_5d), n_bail_set = comma(n_bail_set)) |>
+  kable(caption = "When bail was set: share paid within 5 days, and median bail amount (excluding $1 bail)")
+```

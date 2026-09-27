@@ -1,0 +1,291 @@
+---
+title: "Extensions: interrupted time series and non-monetary condition types"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+source(here::here("R", "utils.R"))
+source(here::here("R", "theme.R"))
+library(broom)
+library(knitr)
+library(sandwich)
+library(lmtest)
+
+d <- read_processed() |>
+  mutate(charge_group = factor(charge_group, levels = charge_levels),
+         age_group = factor(age_group, levels = age_levels),
+         borough = factor(borough, levels = c("Manhattan", "Bronx", "Brooklyn", "Queens", "Staten Island")))
+fmt_ci <- function(est, lo, hi, digits = 2) sprintf(paste0("%.", digits, "f (%.", digits, "f to %.", digits, "f)"), est, lo, hi)
+```
+
+## 1. Interrupted time series of restrictive decisions
+
+### Outcome
+
+The outcome is the monthly share of arraignments with bail set or remand, **standardized to a fixed charge mix**. Each month's rate is a weighted average of that month's rate for violent felonies, other felonies and misdemeanors, using each group's share of all arraignments from 2019 to 2024 as weights. This removes the effect of the rise in violent felony cases after 2019.
+
+The non-monetary release share is not used here because its jump in July 2020 is at least partly a reporting change.
+
+```{r}
+#| label: its-data
+m <- read_table("its_monthly_by_charge") |>
+  mutate(arraign_month = as.Date(arraign_month))
+weights <- m |> group_by(charge_group) |> summarise(n = sum(n)) |> mutate(w = n / sum(n))
+
+its <- m |>
+  left_join(weights |> select(charge_group, w), by = "charge_group") |>
+  group_by(arraign_month) |>
+  summarise(rate_std = sum(w * restrictive_rate),
+            rate_raw = sum(n * restrictive_rate) / sum(n),
+            n = sum(n), .groups = "drop") |>
+  arrange(arraign_month) |>
+  mutate(t = row_number())
+
+write_csv(weights, proj_path("outputs", "tables", "its_weights.csv"))
+kable(weights |> mutate(w = pct(w)), caption = "Standardization weights (share of all arraignments)")
+```
+
+### Model
+
+A segmented regression with a separate level and slope in each period:
+
+- Breaks at January 2020 (reform), July 2020 (first amendments, effective July 2) and June 2022 (first full month after the May 9, 2022 amendments).
+- November and December 2019 are **left out of the fit**. The rate fell steadily through 2019 and dropped sharply in December, as courts prepared for the new law. Keeping those months would make the pre-reform trend absorb part of the reform change.
+- Standard errors are Newey-West (lag 3) to allow for autocorrelation between months.
+
+```{r}
+#| label: its-fit
+T1 <- its$t[its$arraign_month == as.Date("2020-01-01")]
+T2 <- its$t[its$arraign_month == as.Date("2020-07-01")]
+T3 <- its$t[its$arraign_month == as.Date("2022-06-01")]
+anticipation <- as.Date(c("2019-11-01", "2019-12-01"))
+
+its <- its |>
+  mutate(D1 = as.integer(t >= T1), D2 = as.integer(t >= T2), D3 = as.integer(t >= T3),
+         S1 = D1 * (t - T1), S2 = D2 * (t - T2), S3 = D3 * (t - T3),
+         in_fit = !arraign_month %in% anticipation,
+         segment = case_when(t < T1 ~ "Pre-reform", t < T2 ~ "Reform",
+                             t < T3 ~ "First amendments", TRUE ~ "Later amendments"))
+
+fit_its <- function(y) {
+  f <- as.formula(paste(y, "~ t + D1 + S1 + D2 + S2 + D3 + S3"))
+  lm(f, data = filter(its, in_fit))
+}
+m_std <- fit_its("rate_std")
+m_raw <- fit_its("rate_raw")
+V_std <- NeweyWest(m_std, lag = 3, prewhite = FALSE)
+
+# Level changes and the slope within each period (a sum of coefficients).
+combos <- list(
+  "Level change, Jan 2020 (reform)"            = c(D1 = 1),
+  "Level change, Jul 2020 (first amendments)"  = c(D2 = 1),
+  "Level change, Jun 2022 (later amendments)"  = c(D3 = 1),
+  "Trend, pre-reform (Jan to Oct 2019)"        = c(t = 1),
+  "Trend, reform (Jan to Jun 2020)"            = c(t = 1, S1 = 1),
+  "Trend, first amendments"                    = c(t = 1, S1 = 1, S2 = 1),
+  "Trend, later amendments"                    = c(t = 1, S1 = 1, S2 = 1, S3 = 1)
+)
+lincom <- function(model, V, w) {
+  L <- setNames(rep(0, length(coef(model))), names(coef(model)))
+  L[names(w)] <- w
+  est <- sum(L * coef(model)); se <- sqrt(drop(t(L) %*% V %*% L))
+  c(est = est, lo = est - 1.96 * se, hi = est + 1.96 * se)
+}
+its_results <- imap(combos, \(w, nm) {
+  r <- lincom(m_std, V_std, w)
+  is_trend <- startsWith(nm, "Trend")
+  scale <- if (is_trend) 1200 else 100          # trend: points per year; level: points
+  tibble(term = nm, unit = if (is_trend) "pct points per year" else "pct points",
+         estimate = r[["est"]] * scale, conf.low = r[["lo"]] * scale, conf.high = r[["hi"]] * scale)
+}) |> bind_rows()
+write_csv(its_results, proj_path("outputs", "tables", "its_results.csv"))
+
+its_results |>
+  transmute(Term = term, `Estimate (95% CI)` = fmt_ci(estimate, conf.low, conf.high, 1), Unit = unit) |>
+  kable(caption = paste0("Segmented regression, charge-standardized restrictive rate (",
+                         sum(its$in_fit), " months, Newey-West SEs)"))
+```
+
+```{r}
+#| label: fig6
+#| fig-width: 7
+#| fig-height: 4.5
+its <- its |> mutate(fitted = predict(m_std, newdata = its))
+# Pre-reform trend extended 6 months, to show what the 2019 decline alone would predict.
+proj <- tibble(t = seq(T1 - 1, T1 + 5)) |>
+  mutate(arraign_month = seq(as.Date("2019-12-01"), by = "month", length.out = n()),
+         fitted = coef(m_std)[["(Intercept)"]] + coef(m_std)[["t"]] * t)
+level_jan20 <- its_results$estimate[1]; level_jul20 <- its_results$estimate[2]
+level_jun22 <- its_results$estimate[3]; trend_pre <- its_results$estimate[4]
+
+fig6 <- ggplot(its, aes(arraign_month)) +
+  geom_vline(xintercept = as.Date(c("2020-01-01", "2020-07-01", "2022-06-01")),
+             colour = "grey75", linetype = "dashed", linewidth = 0.4) +
+  annotate("text", x = as.Date(c("2020-01-01", "2020-07-01", "2022-06-01")), y = 0.285,
+           label = c("Reform", "First\namendments", "2022\namendments"),
+           hjust = -0.05, vjust = 1, size = 2.7, colour = "grey40", lineheight = 0.9) +
+  geom_line(data = proj, aes(y = fitted), colour = "grey55", linetype = "dotted", linewidth = 0.7) +
+  geom_point(aes(y = rate_std, shape = in_fit), colour = "#0072B2", size = 1.6) +
+  geom_line(data = filter(its, in_fit), aes(y = fitted, group = segment),
+            colour = "#0072B2", linewidth = 0.8) +
+  scale_shape_manual(values = c(`TRUE` = 16, `FALSE` = 1), breaks = c("TRUE", "FALSE"),
+                     labels = c(`TRUE` = "Monthly rate", `FALSE` = "Nov to Dec 2019, left out of fit")) +
+  scale_y_continuous(labels = label_percent(accuracy = 1), limits = c(0.08, 0.29)) +
+  scale_x_date(breaks = seq(as.Date("2019-01-01"), as.Date("2025-01-01"), by = "year"),
+               date_labels = "%Y") +
+  labs(
+    title = "Bail or remand was already falling before the reform took effect",
+    subtitle = paste0("Monthly share with bail set or remand, standardized to the 2019 to 2024 charge mix.\n",
+                      "Lines: segmented regression. Dotted: 2019 trend extended."),
+    x = NULL, y = "Bail set or remand (charge-adjusted)",
+    caption = source_caption(sum(its$n), paste0(
+      "Charge mix weights: ", paste0(pct(weights$w, 0), " ", tolower(weights$charge_group), collapse = ", "),
+      ". Nov and Dec 2019 excluded from the fit. Newey-West standard errors."))
+  ) +
+  guides(shape = guide_legend(override.aes = list(size = 2.2))) +
+  theme_pretrial() +
+  theme(panel.grid.major.x = element_blank())
+save_fig(fig6, "fig6_its_restrictive")
+fig6
+```
+
+The charge-adjusted restrictive rate was already falling by about `r sprintf("%.1f", abs(trend_pre))` points per year from January to October 2019, before the law took effect, and it dropped sharply in December 2019. Even measured against that falling trend, the rate was `r sprintf("%.1f", abs(level_jan20))` points lower in January 2020 than the 2019 trend predicted. It rose again by `r sprintf("%.1f", level_jul20)` points in July 2020, when the first amendments made more charges bail eligible, then drifted down through 2021. In June 2022, after the 2022 amendments, it rose by `r sprintf("%.1f", level_jun22)` points and then stayed roughly flat to the end of 2024 (trend `r sprintf("%.1f", its_results$estimate[7])` points per year).
+
+The law was passed in April 2019, so judges knew for most of 2019 that it was coming, which helps explain the falling pre-reform trend. The counterfactual depends on the 2019 trend continuing, which is uncertain given the short pre-period of 10 months. The reform period is only six months long and overlaps COVID court closures, so its trend is imprecise.
+
+This design only compares each period with the trend just before it. It cannot separate the law from other changes at the same time, such as COVID, court staffing, or changes in who was arrested.
+
+```{r}
+#| label: its-robust
+raw_res <- lincom(m_raw, NeweyWest(m_raw, lag = 3, prewhite = FALSE), c(D2 = 1)) * 100
+m_all <- lm(rate_std ~ t + D1 + S1 + D2 + S2 + D3 + S3, data = its)   # keeps Nov-Dec 2019
+all_res <- lincom(m_all, NeweyWest(m_all, lag = 3, prewhite = FALSE), c(D1 = 1)) * 100
+robust <- tibble(
+  check = c("July 2020 level change, unadjusted rate",
+            "January 2020 level change, keeping Nov to Dec 2019 in the fit"),
+  estimate = c(raw_res[["est"]], all_res[["est"]]),
+  conf.low = c(raw_res[["lo"]], all_res[["lo"]]),
+  conf.high = c(raw_res[["hi"]], all_res[["hi"]]))
+write_csv(robust, proj_path("outputs", "tables", "its_robustness.csv"))
+robust |> transmute(Check = check, `Pct points (95% CI)` = fmt_ci(estimate, conf.low, conf.high, 1)) |> kable()
+```
+
+Keeping November and December 2019 in the fit shows why they were left out: the December drop gets absorbed into the pre-reform period and changes the January 2020 estimate.
+
+## 2. Failure to appear by type of non-monetary condition
+
+The file records the conditions set for every non-monetary release from 2020 on (all condition fields are empty in 2019). Each release is put into one group, most intensive first:
+
+- **Pretrial supervision**: supervised release (includes the few cases with electronic monitoring)
+- **Contact with pretrial services only**: must stay in contact with the pretrial services agency, without supervision
+- **Other conditions only**: for example, an order not to possess weapons
+
+```{r}
+#| label: cond-data
+nmr <- d |>
+  filter(release_decision == "Non-monetary", arraign_year >= 2020) |>
+  mutate(nmr_condition = factor(nmr_condition, levels = c(
+    "Contact with pretrial services only", "Pretrial supervision", "Other conditions only")),
+    year = factor(arraign_year))
+
+cond_counts <- nmr |>
+  group_by(nmr_condition) |>
+  summarise(n = n(), share = n() / nrow(nmr),
+            fta_rate = mean(bench_warrant), rearrest_180_rate = mean(rearrest_180),
+            violent_felony = mean(charge_group == "Violent felony"),
+            open_case = mean(pending_case), prior_bw = mean(prior_bw_2yrs), .groups = "drop")
+write_csv(cond_counts, proj_path("outputs", "tables", "nmr_condition_summary.csv"))
+
+cond_counts |>
+  mutate(n = comma(n), across(c(share, fta_rate, rearrest_180_rate, violent_felony, open_case, prior_bw), pct)) |>
+  kable(caption = "Non-monetary releases, 2020 to 2024, by condition type",
+        col.names = c("Condition", "n", "Share", "Bench warrant", "Rearrest 180d",
+                      "Violent felony", "Open case", "Prior BW 2y"))
+```
+
+```{r}
+#| label: fig7
+#| fig-width: 7
+#| fig-height: 4.5
+by_year <- read_table("outcomes_by_nmr_condition") |>
+  filter(arraign_year >= 2020, nmr_condition != "Other conditions only") |>
+  pivot_longer(c(fta_rate, rearrest_180_rate), names_to = "outcome", values_to = "rate") |>
+  mutate(outcome = recode(outcome, fta_rate = "Bench warrant (FTA)",
+                          rearrest_180_rate = "Rearrest within 180 days"),
+         nmr_condition = factor(nmr_condition, levels = c("Pretrial supervision",
+                                                          "Contact with pretrial services only")))
+end_lab <- by_year |> filter(arraign_year == 2024)
+
+fig7 <- ggplot(by_year, aes(arraign_year, rate, colour = nmr_condition)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2) +
+  facet_wrap(~ outcome) +
+  scale_colour_manual(values = c("Pretrial supervision" = "#0072B2",
+                                 "Contact with pretrial services only" = "#E69F00")) +
+  scale_y_continuous(labels = label_percent(accuracy = 1), limits = c(0, 0.5)) +
+  scale_x_continuous(breaks = 2020:2024) +
+  labs(
+    title = "Supervision and contact-only releases had similar failure rates",
+    subtitle = "Non-monetary releases by condition type and year of arraignment, 2020 to 2024.",
+    x = NULL, y = "Share of non-monetary releases",
+    caption = paste(strwrap(paste0(
+      "Source: NYS DCJS Supplemental Pretrial Release Data File. NYC Criminal Court non-monetary releases, 2020 to 2024 ",
+      "(condition types not recorded in 2019). 'Other conditions only' (n = ",
+      comma(cond_counts$n[cond_counts$nmr_condition == "Other conditions only"]),
+      ") not shown. n = ", comma(nrow(nmr)), " criminal cycles."), 120), collapse = "\n")
+  ) +
+  theme_pretrial() +
+  theme(panel.spacing = unit(1.2, "lines"))
+save_fig(fig7, "fig7_fta_by_condition")
+fig7
+```
+
+### Adjusted comparison
+
+Supervision is usually set for more serious cases, so the raw rates are not a fair comparison. The model below adjusts for charge, history, demographics, borough and year.
+
+```{r}
+#| label: cond-model
+tidy_wald <- function(m) {
+  tidy(m) |>
+    mutate(conf.low = exp(estimate - 1.96 * std.error),
+           conf.high = exp(estimate + 1.96 * std.error),
+           estimate = exp(estimate))
+}
+cond_formula <- ~ nmr_condition + charge_group + firearm_charge + prior_felony_conv +
+  pending_case + prior_bw_2yrs + age_group + sex + borough + year
+nmr_cc <- nmr |>
+  select(bench_warrant, rearrest_180, nmr_condition, charge_group, firearm_charge,
+         prior_felony_conv, pending_case, prior_bw_2yrs, age_group, sex, borough, year) |>
+  tidyr::drop_na()
+
+m_fta <- glm(update(cond_formula, bench_warrant ~ .), data = nmr_cc, family = binomial)
+m_rea <- glm(update(cond_formula, rearrest_180 ~ .), data = nmr_cc, family = binomial)
+
+cond_or <- bind_rows(
+  tidy_wald(m_fta) |> mutate(outcome = "Bench warrant (FTA)"),
+  tidy_wald(m_rea) |> mutate(outcome = "Rearrest within 180 days")
+) |>
+  filter(startsWith(term, "nmr_condition")) |>
+  mutate(term = sub("nmr_condition", "", term))
+write_csv(cond_or, proj_path("outputs", "tables", "nmr_condition_or.csv"))
+
+cond_or |>
+  transmute(Outcome = outcome, `Condition (vs contact only)` = term,
+            `Adjusted odds ratio (95% CI)` = fmt_ci(estimate, conf.low, conf.high)) |>
+  kable(caption = paste0("Logistic regression, n = ", comma(nobs(m_fta)),
+                         " non-monetary releases with complete data"))
+
+sup_fta <- cond_or |> filter(term == "Pretrial supervision", outcome == "Bench warrant (FTA)")
+sup_rea <- cond_or |> filter(term == "Pretrial supervision", outcome == "Rearrest within 180 days")
+```
+
+After adjusting for the characteristics in the model, pretrial supervision was associated with an odds ratio of `r sprintf("%.2f", sup_fta$estimate)` (95% CI `r sprintf("%.2f to %.2f", sup_fta$conf.low, sup_fta$conf.high)`) for a bench warrant and `r sprintf("%.2f", sup_rea$estimate)` (95% CI `r sprintf("%.2f to %.2f", sup_rea$conf.low, sup_rea$conf.high)`) for a rearrest within 180 days, compared with contact-only releases. Judges choose the condition based on information this file does not have, so these are associations, not the effect of supervision. The share of non-monetary releases with supervision grew from `r pct(read_table("outcomes_by_nmr_condition") |> filter(arraign_year == 2020, nmr_condition == "Pretrial supervision") |> pull(share_of_nmr), 0)` in 2020 to `r pct(read_table("outcomes_by_nmr_condition") |> filter(arraign_year == 2024, nmr_condition == "Pretrial supervision") |> pull(share_of_nmr), 0)` in 2024.

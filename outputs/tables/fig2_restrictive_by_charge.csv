@@ -1,0 +1,13 @@
+charge_group,period,n,n_restrictive,restrictive_rate
+Misdemeanor,First amendments,114256,7267,0.06360278672454839
+Misdemeanor,Later amendments,214176,15038,0.07021328253399074
+Misdemeanor,Pre-reform,80645,8809,0.10923181846363693
+Misdemeanor,Reform,24356,1331,0.054647725406470685
+Other felony,First amendments,23455,5152,0.21965465785546792
+Other felony,Later amendments,47455,10853,0.22870087451269625
+Other felony,Pre-reform,17949,6149,0.3425817594294947
+Other felony,Reform,6145,962,0.1565500406834825
+Violent felony,First amendments,29927,16232,0.5423864737527985
+Violent felony,Later amendments,51299,24098,0.46975574572603757
+Violent felony,Pre-reform,12744,7760,0.6089139987445072
+Violent felony,Reform,6531,2961,0.45337620578778137

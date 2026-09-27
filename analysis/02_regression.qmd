@@ -1,0 +1,246 @@
+---
+title: "Regression: characteristics associated with a restrictive release decision"
+format:
+  html:
+    toc: true
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+source(here::here("R", "utils.R"))
+source(here::here("R", "theme.R"))
+library(broom)
+library(knitr)
+
+d <- read_processed() |>
+  mutate(
+    period = factor(period, levels = period_levels),
+    charge_group = relevel(factor(charge_group, levels = charge_levels), ref = "Misdemeanor"),
+    age_group = factor(age_group, levels = age_levels),
+    sex = factor(sex, levels = c("Male", "Female")),
+    race_eth = factor(race_eth, levels = c("White", "Black", "Hispanic", "Asian", "Other")),
+    borough = factor(borough, levels = c("Manhattan", "Bronx", "Brooklyn", "Queens", "Staten Island"))
+  )
+
+model_vars <- c("restrictive", "charge_group", "firearm_charge", "prior_felony_conv",
+                "pending_case", "prior_bw_2yrs", "age_group", "sex", "race_eth",
+                "borough", "period")
+```
+
+## Model
+
+The outcome is `restrictive` (1 = bail set or remand, 0 = ROR or non-monetary release). The main model uses post-reform arraignments only (January 2020 to December 2024), because the decision rules changed in 2020. 2019 is fitted separately as a comparison.
+
+`restrictive ~ charge_group + firearm_charge + prior_felony_conv + pending_case + prior_bw_2yrs + age_group + sex + race_eth + borough + period`, logistic regression.
+
+Prior history uses three fields the file provides: any prior felony conviction, any open case at the time of arrest, and any bench warrant in the two years before arraignment. Reference groups: misdemeanor, age 25 to 34, male, White, Manhattan, first amendments period.
+
+```{r}
+#| label: sample
+post <- d |> filter(period != "Pre-reform") |>
+  mutate(period = relevel(droplevels(period), ref = "First amendments"),
+         age_group = relevel(age_group, ref = "25-34"))
+pre  <- d |> filter(period == "Pre-reform") |>
+  mutate(age_group = relevel(age_group, ref = "25-34"))
+
+post_cc <- post |> select(all_of(model_vars)) |> tidyr::drop_na()
+pre_cc  <- pre  |> select(all_of(setdiff(model_vars, "period"))) |> tidyr::drop_na()
+
+sample_tbl <- tibble(
+  sample = c("Post-reform (2020 to 2024)", "Pre-reform (2019)"),
+  arraignments = c(nrow(post), nrow(pre)),
+  complete_cases = c(nrow(post_cc), nrow(pre_cc)),
+  dropped_missing = arraignments - complete_cases,
+  restrictive_rate = c(mean(post_cc$restrictive), mean(pre_cc$restrictive))
+)
+write_csv(sample_tbl, proj_path("outputs", "tables", "regression_sample.csv"))
+sample_tbl |> mutate(across(c(arraignments, complete_cases, dropped_missing), comma),
+                     restrictive_rate = pct(restrictive_rate)) |> kable()
+```
+
+Cycles with unknown sex, race or age are dropped from the model (listed above).
+
+### Sparse category check
+
+```{r}
+#| label: sparse
+sparse <- map(setdiff(model_vars, "restrictive"), \(v) {
+  post_cc |> group_by(level = as.character(.data[[v]])) |>
+    summarise(n = n(), n_restrictive = sum(restrictive), .groups = "drop") |>
+    mutate(variable = v, .before = 1)
+}) |> bind_rows()
+write_csv(sparse, proj_path("outputs", "tables", "regression_sparse_check.csv"))
+sparse |> arrange(n_restrictive) |> head(8) |> kable(caption = "Smallest cells (post-reform sample)")
+```
+
+The smallest category still has `r comma(min(sparse$n_restrictive))` restrictive decisions, so no category is too sparse to estimate. Native American and Other were combined into "Other" in cleaning for this reason.
+
+## Main model
+
+```{r}
+#| label: fit-main
+f_main <- restrictive ~ charge_group + firearm_charge + prior_felony_conv + pending_case +
+  prior_bw_2yrs + age_group + sex + race_eth + borough + period
+m_main <- glm(f_main, data = post_cc, family = binomial)
+
+term_labels <- c(
+  "charge_groupViolent felony" = "Violent felony (vs misdemeanor)",
+  "charge_groupOther felony"   = "Other felony (vs misdemeanor)",
+  "firearm_charge"             = "Firearm charge",
+  "prior_felony_conv"          = "Prior felony conviction",
+  "pending_case"               = "Open case at arrest",
+  "prior_bw_2yrs"              = "Bench warrant in prior 2 years",
+  "age_group18-20" = "Age 18 to 20 (vs 25 to 34)",
+  "age_group21-24" = "Age 21 to 24",
+  "age_group35-49" = "Age 35 to 49",
+  "age_group50+"   = "Age 50+",
+  "sexFemale"      = "Female (vs male)",
+  "race_ethBlack"  = "Black (vs White)",
+  "race_ethHispanic" = "Hispanic (vs White)",
+  "race_ethAsian"  = "Asian (vs White)",
+  "race_ethOther"  = "Other race (vs White)",
+  "boroughBronx"   = "Bronx (vs Manhattan)",
+  "boroughBrooklyn" = "Brooklyn",
+  "boroughQueens"  = "Queens",
+  "boroughStaten Island" = "Staten Island",
+  "periodReform"   = "Reform, Jan to Jun 2020 (vs first amendments)",
+  "periodLater amendments" = "Later amendments, Jun 2022 to 2024"
+)
+term_groups <- c(
+  rep("Charge", 3), rep("Prior history", 3), rep("Age", 4), "Sex",
+  rep("Race and ethnicity", 4), rep("Borough", 4), rep("Period", 2)
+)
+names(term_groups) <- names(term_labels)
+
+# Wald 95% CIs on the log-odds scale, then exponentiated. This matches
+# broom::tidy(exponentiate = TRUE, conf.int = TRUE) up to rounding at this sample
+# size, but avoids profile-likelihood intervals, which take minutes on 500k rows.
+tidy_wald <- function(m) {
+  tidy(m) |>
+    mutate(conf.low  = exp(estimate - qnorm(0.975) * std.error),
+           conf.high = exp(estimate + qnorm(0.975) * std.error),
+           estimate  = exp(estimate))
+}
+tidy_or <- function(m) {
+  tidy_wald(m) |>
+    filter(term != "(Intercept)") |>
+    mutate(label = unname(term_labels[term]), group = unname(term_groups[term]))
+}
+or_main <- tidy_or(m_main)
+write_csv(or_main, proj_path("outputs", "tables", "regression_or_main.csv"))
+
+fmt_or <- function(est, lo, hi) sprintf("%.2f (%.2f to %.2f)", est, lo, hi)
+or_main |> transmute(Group = group, Term = label,
+                     `Odds ratio (95% CI)` = fmt_or(estimate, conf.low, conf.high),
+                     p = format.pval(p.value, digits = 2, eps = 0.001)) |> kable()
+```
+
+```{r}
+#| label: fig5
+#| fig-width: 7
+#| fig-height: 6
+fig5_data <- or_main |>
+  mutate(group = factor(group, levels = unique(term_groups)),
+         label = factor(label, levels = rev(unname(term_labels))))
+
+fig5 <- ggplot(fig5_data, aes(estimate, label)) +
+  geom_vline(xintercept = 1, colour = "grey50", linewidth = 0.4) +
+  geom_errorbarh(aes(xmin = conf.low, xmax = conf.high), height = 0,
+                 colour = "#0072B2", linewidth = 0.6) +
+  geom_point(colour = "#0072B2", size = 2.2) +
+  facet_grid(group ~ ., scales = "free_y", space = "free_y", switch = "y") +
+  scale_x_log10(breaks = c(0.5, 1, 2, 5, 10, 20), labels = c("0.5", "1", "2", "5", "10", "20")) +
+  labs(
+    title = "Charge severity and prior history had the strongest associations",
+    subtitle = "Adjusted odds ratios of bail set or remand, post-reform arraignments (Jan 2020 to Dec 2024).\nLogistic regression, 95% confidence intervals, log scale. Right of 1 = more likely restrictive.",
+    x = "Odds ratio (log scale)", y = NULL,
+    caption = paste(strwrap(paste0(
+      "Source: NYS DCJS Supplemental Pretrial Release Data File. NYC Criminal Court arraignments with a felony or ",
+      "misdemeanor top charge and known release decision. n = ", comma(nobs(m_main)),
+      " criminal cycles (complete cases). Associations, not causal effects."), 120), collapse = "\n")
+  ) +
+  theme_pretrial() +
+  theme(strip.placement = "outside",
+        strip.text.y.left = element_text(angle = 0, hjust = 1, face = "bold", size = rel(0.8)),
+        panel.spacing.y = unit(0.35, "lines"),
+        panel.grid.major.y = element_blank())
+save_fig(fig5, "fig5_regression_odds_ratios", height = 6)
+fig5
+```
+
+```{r}
+#| label: key-ors
+or_of <- function(t) or_main |> filter(term == t)
+fmt1 <- function(t) { r <- or_of(t); sprintf("OR %.2f, 95%% CI %.2f to %.2f", r$estimate, r$conf.low, r$conf.high) }
+```
+
+After adjusting for the characteristics in the model, a violent felony charge was associated with `r sprintf("%.0f", or_of("charge_groupViolent felony")$estimate)` times the odds of bail or remand compared with a misdemeanor, and a firearm charge with `r sprintf("%.1f", or_of("firearm_charge")$estimate)` times the odds. An open case at arrest (`r fmt1("pending_case")`), a bench warrant in the prior two years (`r fmt1("prior_bw_2yrs")`) and a prior felony conviction (`r fmt1("prior_felony_conv")`) were each associated with higher odds. Women had lower odds than men (`r fmt1("sexFemale")`). Arraignments in Brooklyn and the Bronx had about 40% lower odds than in Manhattan.
+
+For race and ethnicity, the odds for Black (`r fmt1("race_ethBlack")`) and Hispanic (`r fmt1("race_ethHispanic")`) people were close to those for White people once charge, history and borough were in the model. This does not show that decisions are free of racial disparity. The model adjusts for charge and history, and those can carry earlier disparities in arrest and charging. Race differences may also reflect factors not in this file, such as charge details and case facts the judge sees.
+
+After adjustment, the later amendments period (`r fmt1("periodLater amendments")`) was not different from the first amendments period, while the first half of 2020 had lower odds (`r fmt1("periodReform")`).
+
+## Robustness checks
+
+```{r}
+#| label: robustness
+# 1. Without race and ethnicity
+m_norace <- glm(update(f_main, . ~ . - race_eth), data = post_cc, family = binomial)
+# 2. Charge group interacted with period
+m_inter  <- glm(update(f_main, . ~ . + charge_group:period), data = post_cc, family = binomial)
+# 3. 2019 only (no period term)
+m_2019   <- glm(update(f_main, . ~ . - period), data = pre_cc, family = binomial)
+
+or_norace <- tidy_or(m_norace)
+or_2019   <- tidy_or(m_2019)
+
+compare <- or_main |>
+  select(term, label, group, main = estimate, main_lo = conf.low, main_hi = conf.high) |>
+  left_join(or_norace |> select(term, no_race = estimate), by = "term") |>
+  left_join(or_2019 |> select(term, y2019 = estimate, y2019_lo = conf.low, y2019_hi = conf.high),
+            by = "term")
+write_csv(compare, proj_path("outputs", "tables", "regression_robustness.csv"))
+
+compare |>
+  transmute(Term = label,
+            `Main model` = fmt_or(main, main_lo, main_hi),
+            `Without race` = sprintf("%.2f", no_race),
+            `2019 only` = ifelse(is.na(y2019), "", fmt_or(y2019, y2019_lo, y2019_hi))) |>
+  kable(caption = "Odds ratios across specifications")
+
+lrt <- anova(m_main, m_inter, test = "LRT")
+inter_p <- lrt$`Pr(>Chi)`[2]
+
+# Charge-group odds ratios within each period from the interaction model
+charge_by_period <- map(levels(post_cc$period), \(p) {
+  dd <- post_cc |> mutate(period = relevel(period, ref = p))
+  m  <- glm(update(f_main, . ~ . + charge_group:period), data = dd, family = binomial)
+  tidy_wald(m) |>
+    filter(term %in% c("charge_groupViolent felony", "charge_groupOther felony")) |>
+    mutate(period = p)
+}) |> bind_rows()
+write_csv(charge_by_period, proj_path("outputs", "tables", "regression_charge_by_period.csv"))
+charge_by_period |>
+  transmute(period, term = unname(term_labels[term]),
+            `Odds ratio (95% CI)` = fmt_or(estimate, conf.low, conf.high)) |>
+  kable(caption = "Charge-group odds ratios by period (interaction model)")
+
+max_change_norace <- with(compare |> filter(group != "Race and ethnicity"),
+                          max(abs(no_race / main - 1)))
+fit_stats <- tibble(
+  model = c("Main", "Without race", "Charge x period", "2019 only"),
+  n = c(nobs(m_main), nobs(m_norace), nobs(m_inter), nobs(m_2019)),
+  AIC = c(AIC(m_main), AIC(m_norace), AIC(m_inter), AIC(m_2019))
+)
+write_csv(fit_stats, proj_path("outputs", "tables", "regression_fit.csv"))
+write_csv(tibble(inter_lrt_p = inter_p, max_rel_change_norace = max_change_norace),
+          proj_path("outputs", "tables", "regression_robustness_summary.csv"))
+kable(fit_stats |> mutate(n = comma(n), AIC = round(AIC)))
+```
+
+Dropping race and ethnicity changes the other odds ratios by at most `r pct(max_change_norace, 0)`, so the main results hold. Adding a charge-by-period interaction improves fit (likelihood ratio test p `r format.pval(inter_p, digits = 2, eps = 0.001)`), which means the gap between felony and misdemeanor cases was not constant across periods; the table above shows the charge odds ratios within each period. With over half a million cycles, even small differences are statistically significant, so the size of each odds ratio matters more than its p-value. There is no person identifier, so standard errors cannot account for repeat cycles by the same person and are likely somewhat too narrow.

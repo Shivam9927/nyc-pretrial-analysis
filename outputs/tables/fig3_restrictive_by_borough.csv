@@ -1,0 +1,21 @@
+borough,period,n,restrictive_rate,rank_in_period
+Manhattan,First amendments,39584,0.21475848827809216,1
+Bronx,First amendments,29038,0.17935119498588056,2
+Staten Island,First amendments,8512,0.1712875939849624,3
+Brooklyn,First amendments,50570,0.1630808779909037,4
+Queens,First amendments,39934,0.13114138328241598,5
+Manhattan,Later amendments,69899,0.1927924576889512,1
+Queens,Later amendments,75145,0.1695788142923681,2
+Staten Island,Later amendments,15556,0.14508871175109284,3
+Bronx,Later amendments,54595,0.14473852916933785,4
+Brooklyn,Later amendments,97735,0.1392643372384509,5
+Manhattan,Pre-reform,27384,0.26391323400525857,1
+Staten Island,Pre-reform,5339,0.253043641131298,2
+Queens,Pre-reform,26177,0.19188600679986248,3
+Bronx,Pre-reform,21135,0.17970191625266146,4
+Brooklyn,Pre-reform,31303,0.16991981599207745,5
+Staten Island,Reform,1937,0.18895198760970572,1
+Manhattan,Reform,8887,0.1848767863170924,2
+Bronx,Reform,6708,0.13595706618962433,3
+Brooklyn,Reform,10562,0.1294262450293505,4
+Queens,Reform,8938,0.10807786976952338,5
