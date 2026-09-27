@@ -1,0 +1,10 @@
+# Rendered notebooks and outputs are build products, not source code.
+# Keep them out of GitHub's language stats so R and SQL show correctly.
+outputs/** linguist-generated=true
+*.html linguist-generated=true
+
+# GitHub treats SQL as a data language and hides it by default. Show it.
+*.sql linguist-detectable=true
+
+# Count Quarto notebooks as R, since the code inside them is R.
+*.qmd linguist-language=R
