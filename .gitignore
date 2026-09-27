@@ -1,5 +1,6 @@
 # Raw data is ~800 MB; download it (see data/README.md)
-data/raw/
+data/raw/*
+!data/raw/.gitkeep
 # Rebuilt by the pipeline
 data/processed/*.rds
 data/processed/*.csv
